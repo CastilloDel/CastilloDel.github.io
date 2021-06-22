@@ -15,4 +15,4 @@ theme = "feather"
 highlight_code = true
 
 [extra]
-# Put all your custom variables here
+feather_header_image = "otter.jpg"
