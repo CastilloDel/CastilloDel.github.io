@@ -1,6 +1,12 @@
 # The URL the site will be built for
 base_url = "https://castillodel.github.io"
 
+title = "CastilloDel's page"
+
+minify_html = true
+
+smart_punctuation = true
+
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 
@@ -16,3 +22,5 @@ highlight_code = true
 
 [extra]
 feather_header_image = "otter.jpg"
+
+feather_donate_link = "https://paypal.me/CastilloDelPayPal"
