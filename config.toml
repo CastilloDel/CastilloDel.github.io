@@ -24,3 +24,5 @@ highlight_code = true
 feather_header_image = "/otter.jpg"
 
 feather_donate_link = "https://paypal.me/CastilloDelPayPal"
+
+feather_personal_page = "/about-me"
