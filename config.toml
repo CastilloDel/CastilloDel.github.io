@@ -21,6 +21,6 @@ theme = "feather"
 highlight_code = true
 
 [extra]
-feather_header_image = "otter.jpg"
+feather_header_image = "/otter.jpg"
 
 feather_donate_link = "https://paypal.me/CastilloDelPayPal"
