@@ -3,8 +3,6 @@ base_url = "https://castillodel.github.io"
 
 title = "CastilloDel's page"
 
-minify_html = true
-
 smart_punctuation = true
 
 # Whether to automatically compile all Sass files in the sass directory
