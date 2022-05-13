@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta charset="UTF-8">
+    <meta name="description" content="">
+    <meta name="keywords" content="HTML, CSS, JavaScript">
+    
+    <meta name="author" content="CastilloDel" >
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>CastilloDel&#x27;s page</title>
+
+  <!-- css -->
+  <link rel="stylesheet" href="/reset.css">
+  <link rel="stylesheet" href="/feather.css">
+
+  <!-- fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Merriweather:300,400|Montserrat:400,700" rel="stylesheet">
+
+  
+
+  
+
+  
+  
+</head>
+
+<body>
+
+  <a href="/">
+    <div class='header-image'
+      style='background-image: url(&#x2F;otter.jpg);'>
+    </div>
+  </a>
+
+  
+<div class='container'>
+  <section class="post">
+    <div class="title-and-info">
+      <h2>Compile time evaluation in Nim, Zig, Rust and C++</h2>
+      <div class="info">
+        <span>10 minute read</span>
+        
+        <span class='divider' />
+        <span>13 April 2022</span>
+        
+        
+        
+        <span class='divider' />
+        <span><a href="/tags/nim">Nim</a></span>
+        
+        <span class='divider' />
+        <span><a href="/tags/zig">Zig</a></span>
+        
+        <span class='divider' />
+        <span><a href="/tags/rust">Rust</a></span>
+        
+        <span class='divider' />
+        <span><a href="/tags/c">C++</a></span>
+        
+        
+      </div>
+    </div>
+    
+    <aside class="sidebar__right ">
+      <nav class="toc">
+        <header>
+          <h4 class="nav__title"> Table of contents</h4>
+        </header>
+        <ul class="toc__menu">
+          
+          <li>
+            <a href="https://castillodel.github.io/compile-time-evaluation/#nim">Nim</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://castillodel.github.io/compile-time-evaluation/#zig">Zig</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://castillodel.github.io/compile-time-evaluation/#rust">Rust</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://castillodel.github.io/compile-time-evaluation/#c">C++</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://castillodel.github.io/compile-time-evaluation/#conclusion">Conclusion</a>
+            
+          </li>
+          
+        </ul>
+      </nav>
+    </aside>
+    
+    <article id="main_text">
+      <p>Evaluating code at compile time is a capability that most, if not all, compiled programming languages possess, even if it can't be directly used by the programmer, but rather applied as an optimization. In this post, we'll explore a bit how to execute code at compile time in Nim, Zig, Rust and C++.</p>
+<h2 id="nim">Nim<a class="zola-anchor" href="#nim" aria-label="Anchor link for: nim">🔗</a></h2>
+<p>In Nim, we can use the word <code>const</code> to declare a variable that needs to be evaluated at compile time. If we didn't want or can't evaluate something at compile time we will need to use <code>var</code> or <code>let</code>. The following code will result in a list of string representing the numbers between 1 and 100 to be present in the binary.</p>
+<pre data-lang="nim" style="background-color:#2b303b;color:#6c7079;" class="language-nim "><code class="language-nim" data-lang="nim"><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> numbers = </span><span style="color:#5cb3fa;">toSeq</span><span style="color:#abb2bf;">(</span><span style="color:#db9d63;">1</span><span style="color:#abb2bf;">..</span><span style="color:#db9d63;">100</span><span style="color:#abb2bf;">).</span><span style="color:#5cb3fa;">map</span><span style="color:#abb2bf;">(x =&gt; $x) </span><span style="font-style:italic;color:#5f697a;"># $ allows us to transform the numbers to string
+</span><span style="color:#cd74e8;">for</span><span style="color:#abb2bf;"> num </span><span style="color:#adb7c9;">in</span><span style="color:#abb2bf;"> numbers:
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">echo</span><span style="color:#abb2bf;"> num
+</span></code></pre>
+<p>It's easy to check that's the case. We just need to open the binary with a text editor and check that there is some place where there is a list with all these numbers. Don't worry if there is a lot of strange symbols there! They just mean the binary code there isn't meant to represent ASCII or even UTF characters, but our list of numbers will be there. I found the following, all in the same line and with strange symbols between each number:</p>
+<pre style="background-color:#2b303b;color:#6c7079;"><code><span style="color:#abb2bf;">@1@2@3@4@5@6@7@8@9@10@11@12@13@14@15@16@17@18 ... @96@97@98@99@100
+</span></code></pre>
+<p>Now, that we know the basics we can try to do something funnier. We will try to implement <a href="https://en.wikipedia.org/wiki/Fizz_buzz">Fizzbuzz</a> (a really famous, but rather simple programming challenge), so that the result is always evaluated at compile time.</p>
+<pre data-lang="nim" style="background-color:#2b303b;color:#6c7079;" class="language-nim "><code class="language-nim" data-lang="nim"><span style="color:#cd74e8;">import</span><span style="color:#abb2bf;"> std/sequtils
+</span><span style="color:#cd74e8;">import</span><span style="color:#abb2bf;"> std/sugar
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">proc </span><span style="color:#5cb3fa;">fizzbuzz</span><span style="color:#abb2bf;">(number: </span><span style="color:#cd74e8;">int</span><span style="color:#abb2bf;">): </span><span style="color:#cd74e8;">string </span><span style="color:#abb2bf;">{.</span><span style="color:#db9d63;">compileTime</span><span style="color:#abb2bf;">.} </span><span style="color:#adb7c9;">=
+</span><span style="color:#abb2bf;">  </span><span style="color:#cd74e8;">if</span><span style="color:#abb2bf;"> number </span><span style="color:#5cb3fa;">mod </span><span style="color:#db9d63;">3</span><span style="color:#abb2bf;"> == </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">:
+</span><span style="color:#abb2bf;">    result = </span><span style="color:#9acc76;">&quot;Fizz&quot;
+</span><span style="color:#abb2bf;">  </span><span style="color:#cd74e8;">if</span><span style="color:#abb2bf;"> number </span><span style="color:#5cb3fa;">mod </span><span style="color:#db9d63;">5</span><span style="color:#abb2bf;"> == </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">:
+</span><span style="color:#abb2bf;">    result &amp;= </span><span style="color:#9acc76;">&quot;Buzz&quot;
+</span><span style="color:#abb2bf;">  </span><span style="color:#cd74e8;">if</span><span style="color:#abb2bf;"> result == </span><span style="color:#9acc76;">&quot;&quot;</span><span style="color:#adb7c9;">:
+</span><span style="color:#abb2bf;">    result = $number
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> numbers = </span><span style="color:#5cb3fa;">toSeq</span><span style="color:#abb2bf;">(</span><span style="color:#db9d63;">1</span><span style="color:#abb2bf;">..</span><span style="color:#db9d63;">100</span><span style="color:#abb2bf;">).</span><span style="color:#5cb3fa;">map</span><span style="color:#abb2bf;">(x =&gt; </span><span style="color:#5cb3fa;">fizzbuzz</span><span style="color:#abb2bf;">(x))
+</span><span style="color:#cd74e8;">for</span><span style="color:#abb2bf;"> num </span><span style="color:#adb7c9;">in</span><span style="color:#abb2bf;"> numbers:
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">echo</span><span style="color:#abb2bf;"> num
+</span></code></pre>
+<p>Notice that with this we have introduced some new elements. There is a function call and some mathematic operations. There is also the <code>compileTime</code> pragma, which ensures that this function will only be called during compilation and no code will be generated for it. If we check the resulting binary we will find something like this:</p>
+<pre style="background-color:#2b303b;color:#6c7079;"><code><span style="color:#abb2bf;">@1@2@Fizz@4@Buzz@7@8@11@13@14@FizzBuzz@16@17@19@22@23@26@28@29@31 ...
+</span></code></pre>
+<p>It works! It almost seems like it was too easy, right? Executing arbritrary code at compile time seems like something really complex. We will continue thinking about that further down the line, but now we feel optimistic and happy because everything has come out nicely.</p>
+<p>But wait... Why do &quot;Fizz&quot;, &quot;Buzz&quot; and &quot;FizzBuzz&quot; only appear once? And why are some numbers missing like 6, 9, 20 and 30???</p>
+<p>Every number that is missing should be &quot;Fizz&quot;, &quot;Buzz&quot; or &quot;FizzBuzz&quot; and these ones only need to appear once, because the same string can be reused. But now we have a new problem, if these strings we have been seeing don't contain &quot;Fizz&quot; more than once, then they can't represent the final array, right?. That's true. What we have been seeing are only the preprocessed strings, the array will be made of pointers to the directions of this strings, that way it's possible to reuse the &quot;Fizz&quot; string.</p>
+<h2 id="zig">Zig<a class="zola-anchor" href="#zig" aria-label="Anchor link for: zig">🔗</a></h2>
+<p>In zig we can evaluate code at compile time using the <code>comptime</code> keyword. It should be pretty easy based on our experience with Nim. Something like the following should be enough:</p>
+<pre data-lang="zig" style="background-color:#2b303b;color:#6c7079;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#cd74e8;">fn </span><span style="color:#5cb3fa;">get_fizzbuzz</span><span style="color:#abb2bf;">(</span><span style="color:#eb6772;">n</span><span style="color:#abb2bf;">: </span><span style="color:#cd74e8;">usize</span><span style="color:#abb2bf;">) []</span><span style="color:#cd74e8;">const u8 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">15 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;FizzBuzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">3 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Fizz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">5 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Buzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">return</span><span style="color:#abb2bf;"> n </span><span style="font-style:italic;color:#5f697a;">// missing: convert n to string
+</span><span style="color:#abb2bf;">}
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">pub fn </span><span style="color:#5cb3fa;">main</span><span style="color:#abb2bf;">() </span><span style="color:#cd74e8;">anyerror</span><span style="color:#adb7c9;">!</span><span style="color:#cd74e8;">void </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> fizzbuzz_numbers </span><span style="color:#adb7c9;">= </span><span style="color:#cd74e8;">comptime </span><span style="color:#abb2bf;">init: {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">var </span><span style="color:#eb6772;">numbers</span><span style="color:#abb2bf;">: [</span><span style="color:#db9d63;">100</span><span style="color:#abb2bf;">][]</span><span style="color:#cd74e8;">const u8 </span><span style="color:#adb7c9;">= </span><span style="color:#db9d63;">undefined</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">for </span><span style="color:#abb2bf;">(numbers) </span><span style="color:#adb7c9;">|*</span><span style="color:#abb2bf;">val, i</span><span style="color:#adb7c9;">| </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">            val</span><span style="color:#adb7c9;">.* = </span><span style="color:#eb6772;">get_fizzbuzz</span><span style="color:#abb2bf;">(i </span><span style="color:#adb7c9;">+ </span><span style="color:#db9d63;">1</span><span style="color:#abb2bf;">);
+</span><span style="color:#abb2bf;">        }
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">break</span><span style="color:#abb2bf;"> :init numbers;
+</span><span style="color:#abb2bf;">    };
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">for </span><span style="color:#abb2bf;">(fizzbuzz_numbers) </span><span style="color:#adb7c9;">|</span><span style="color:#abb2bf;">n</span><span style="color:#adb7c9;">| </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        std.debug.</span><span style="color:#eb6772;">print</span><span style="color:#abb2bf;">(</span><span style="color:#9acc76;">&quot;{s}</span><span style="color:#5ebfcc;">\n</span><span style="color:#9acc76;">&quot;</span><span style="color:#abb2bf;">, .{n});
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">}
+</span></code></pre>
+<p>Notice how we wrap the <code>fizzbuzz_numbers</code> initialization in a <code>comptime</code> block. This should mostly work. We only need to to convert <code>n</code> to a string and we're all set! In Nim it was so easy, surely we can just convert it. Let me search how to do it.</p>
+<pre data-lang="zig" style="background-color:#2b303b;color:#6c7079;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">return</span><span style="color:#abb2bf;"> std.fmt.</span><span style="color:#eb6772;">allocPrint</span><span style="color:#abb2bf;">(allocator, </span><span style="color:#9acc76;">&quot;{d}&quot;</span><span style="color:#abb2bf;">, .{n});
+</span></code></pre>
+<p>We can just do something like this! But wait, we need an allocator for this. Why? Well, if we think it through it's clear why. Different numbers need different string sizes to be represented. 10 can be represented in two ASCII characters, but 100 needs three. So this is something that tipycally needs heap allocated memory to work. We don't need to get desperate though! Luckily for us, Zig has our backs!</p>
+<pre data-lang="zig" style="background-color:#2b303b;color:#6c7079;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">return</span><span style="color:#abb2bf;"> std.fmt.</span><span style="color:#eb6772;">comptimePrint</span><span style="color:#abb2bf;">(</span><span style="color:#9acc76;">&quot;{}&quot;</span><span style="color:#abb2bf;">, .{n});
+</span></code></pre>
+<p>The <code>comptimePrint</code> function allows us to do exactly what we need. It performs all the necessary checks at compile time, so the compiled code knows the exact size of the string it needs to handle. This way it can be allocated in the stack. For this to work, we need to mark <code>n</code> as a <code>comptime</code> value, which means it must be known at compile time. The final code would be the following:</p>
+<pre data-lang="zig" style="background-color:#2b303b;color:#6c7079;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> std </span><span style="color:#adb7c9;">= </span><span style="color:#cd74e8;">@import</span><span style="color:#abb2bf;">(</span><span style="color:#9acc76;">&quot;std&quot;</span><span style="color:#abb2bf;">);
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">fn </span><span style="color:#5cb3fa;">get_fizzbuzz</span><span style="color:#abb2bf;">(</span><span style="color:#cd74e8;">comptime </span><span style="color:#eb6772;">n</span><span style="color:#abb2bf;">: </span><span style="color:#cd74e8;">usize</span><span style="color:#abb2bf;">) []</span><span style="color:#cd74e8;">const u8 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">15 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;FizzBuzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">3 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Fizz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(n </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">5 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Buzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">return</span><span style="color:#abb2bf;"> std.fmt.</span><span style="color:#eb6772;">comptimePrint</span><span style="color:#abb2bf;">(</span><span style="color:#9acc76;">&quot;{}&quot;</span><span style="color:#abb2bf;">, .{n});
+</span><span style="color:#abb2bf;">}
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">pub fn </span><span style="color:#5cb3fa;">main</span><span style="color:#abb2bf;">() </span><span style="color:#cd74e8;">anyerror</span><span style="color:#adb7c9;">!</span><span style="color:#cd74e8;">void </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> fizzbuzz_numbers </span><span style="color:#adb7c9;">= </span><span style="color:#cd74e8;">comptime </span><span style="color:#abb2bf;">init: {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">var </span><span style="color:#eb6772;">numbers</span><span style="color:#abb2bf;">: [</span><span style="color:#db9d63;">100</span><span style="color:#abb2bf;">][]</span><span style="color:#cd74e8;">const u8 </span><span style="color:#adb7c9;">= </span><span style="color:#db9d63;">undefined</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">for </span><span style="color:#abb2bf;">(numbers) </span><span style="color:#adb7c9;">|*</span><span style="color:#abb2bf;">val, i</span><span style="color:#adb7c9;">| </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">            val</span><span style="color:#adb7c9;">.* = </span><span style="color:#eb6772;">get_fizzbuzz</span><span style="color:#abb2bf;">(i </span><span style="color:#adb7c9;">+ </span><span style="color:#db9d63;">1</span><span style="color:#abb2bf;">);
+</span><span style="color:#abb2bf;">        }
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">break</span><span style="color:#abb2bf;"> :init numbers;
+</span><span style="color:#abb2bf;">    };
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">for </span><span style="color:#abb2bf;">(fizzbuzz_numbers) </span><span style="color:#adb7c9;">|</span><span style="color:#abb2bf;">n</span><span style="color:#adb7c9;">| </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        std.debug.</span><span style="color:#eb6772;">print</span><span style="color:#abb2bf;">(</span><span style="color:#9acc76;">&quot;{s}</span><span style="color:#5ebfcc;">\n</span><span style="color:#9acc76;">&quot;</span><span style="color:#abb2bf;">, .{n});
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">}
+</span></code></pre>
+<p>If we repeat what we did with the Nim code, we can also see the corresponding strings in the binary. We can also see it clearly using <a href="https://gcc.godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:&#x27;1&#x27;,fontScale:14,fontUsePx:&#x27;0&#x27;,j:1,lang:zig,selection:(endColumn:26,endLineNumber:3,positionColumn:26,positionLineNumber:3,selectionStartColumn:26,selectionStartLineNumber:3,startColumn:26,startLineNumber:3),source:&#x27;const+std+%3D+@import(%22std%22)%3B%0A%0Afn+get_fizzbuzz(comptime+n:+usize)+%5B%5Dconst+u8+%7B%0A++++if+(n+%25+15+%3D%3D+0)+%7B%0A++++++++return+%22FizzBuzz%22%3B%0A++++%7D+else+if+(n+%25+3+%3D%3D+0)+%7B%0A++++++++return+%22Fizz%22%3B%0A++++%7D+else+if+(n+%25+5+%3D%3D+0)+%7B%0A++++++++return+%22Buzz%22%3B%0A++++%7D%0A++++return+std.fmt.comptimePrint(%22%7B%7D%22,+.%7Bn%7D)%3B%0A%7D%0A%0Apub+fn+main()+anyerror!!void+%7B%0A++++const+fizzbuzz_numbers+%3D+comptime+init:+%7B%0A++++++++var+numbers:+%5B100%5D%5B%5Dconst+u8+%3D+undefined%3B%0A++++++++for+(numbers)+%7C*val,+i%7C+%7B%0A++++++++++++val.*+%3D+get_fizzbuzz(i+%2B+1)%3B%0A++++++++%7D%0A++++++++break+:init+numbers%3B%0A++++%7D%3B%0A++++for+(fizzbuzz_numbers)+%7Cn%7C+%7B%0A++++++++std.debug.print(%22%7Bs%7D%5Cn%22,+.%7Bn%7D)%3B%0A++++%7D%0A%7D&#x27;),l:&#x27;5&#x27;,n:&#x27;0&#x27;,o:&#x27;Zig+source+%231&#x27;,t:&#x27;0&#x27;)),k:55.38833031495245,l:&#x27;4&#x27;,m:100,n:&#x27;0&#x27;,o:&#x27;&#x27;,s:0,t:&#x27;0&#x27;),(g:!((h:compiler,i:(compiler:z090,filters:(b:&#x27;1&#x27;,binary:&#x27;0&#x27;,commentOnly:&#x27;1&#x27;,demangle:&#x27;0&#x27;,directives:&#x27;1&#x27;,execute:&#x27;1&#x27;,intel:&#x27;0&#x27;,libraryCode:&#x27;0&#x27;,trim:&#x27;1&#x27;),flagsViewOpen:&#x27;1&#x27;,fontScale:14,fontUsePx:&#x27;0&#x27;,j:1,lang:zig,libs:!(),options:&#x27;&#x27;,selection:(endColumn:1,endLineNumber:1,positionColumn:1,positionLineNumber:1,selectionStartColumn:1,selectionStartLineNumber:1,startColumn:1,startLineNumber:1),source:1,tree:&#x27;1&#x27;),l:&#x27;5&#x27;,n:&#x27;0&#x27;,o:&#x27;zig+0.9.0+(Zig,+Editor+%231,+Compiler+%231)&#x27;,t:&#x27;0&#x27;)),k:44.61166968504757,l:&#x27;4&#x27;,n:&#x27;0&#x27;,o:&#x27;&#x27;,s:0,t:&#x27;0&#x27;)),l:&#x27;2&#x27;,n:&#x27;0&#x27;,o:&#x27;&#x27;,t:&#x27;0&#x27;)),version:4">Compiler Explorer</a>.</p>
+<p>I liked Zig approach, it made the different problems be clear, but also gave us the appropiate tools to overcome them. Nim, on the other hand, just handled everything for us which was really nice. It is also really interesting to look at <a href="https://github.com/ziglang/zig/blob/f8d2b87fa122a948e2c8e1056e2ec4cfd4cf01bf/lib/std/fmt.zig#L1935">the source code of the <code>comptimePrint</code> function</a>. It is implemented outside the language, in the standard library, and really takes advantage of Zig's compile time execution capabilities.</p>
+<h2 id="rust">Rust<a class="zola-anchor" href="#rust" aria-label="Anchor link for: rust">🔗</a></h2>
+<p>We can also try to do the same in Rust! In Rust we use the keyword <code>const</code> to declare a function that can be evaluated at compile time. This restricts the operations we can do. For example, we can't use the <code>String</code> type, because it uses heap allocations. So our function should return a <code>&amp;'static str</code>, which means a reference to a string that lives throughout the entire program (usually because the data is embedded in the binary).</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#6c7079;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#cd74e8;">const fn </span><span style="color:#5cb3fa;">get_fizzbuzz_equivalent</span><span style="color:#abb2bf;">(</span><span style="color:#eb6772;">number</span><span style="color:#abb2bf;">: </span><span style="color:#cd74e8;">usize</span><span style="color:#abb2bf;">) -&gt; </span><span style="color:#adb7c9;">&amp;</span><span style="color:#cd74e8;">&#39;static str </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">15 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;FizzBuzz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">3 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;Fizz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">5 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;Buzz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#adb7c9;">&amp;</span><span style="color:#abb2bf;">number.</span><span style="color:#5ebfcc;">to_string</span><span style="color:#abb2bf;">() </span><span style="font-style:italic;color:#5f697a;">// Obviously this doesn&#39;t work for the reasons we discussed previously
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">}
+</span></code></pre>
+<p>This is a nice first approach, but we have the same problem we had with Zig. Notice that Rust also makes the problem really clear, we can't use a String inside a <code>const</code> function. We could use something like <a href="https://docs.rs/crate/const_format/latest">const_format</a> to get what we need. We would have the following code:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#6c7079;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#cd74e8;">use </span><span style="color:#abb2bf;">const_format::formatcp;
+</span><span style="color:#abb2bf;">
+</span><span style="color:#cd74e8;">const fn </span><span style="color:#5cb3fa;">get_fizzbuzz_equivalent</span><span style="color:#abb2bf;">&lt;</span><span style="color:#cd74e8;">const</span><span style="color:#abb2bf;"> number: </span><span style="color:#cd74e8;">usize</span><span style="color:#abb2bf;">&gt;() -&gt; </span><span style="color:#adb7c9;">&amp;</span><span style="color:#cd74e8;">&#39;static str </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">15 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;FizzBuzz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">3 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;Fizz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if</span><span style="color:#abb2bf;"> number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">5 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0 </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        </span><span style="color:#9acc76;">&quot;Buzz&quot;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else </span><span style="color:#abb2bf;">{
+</span><span style="color:#abb2bf;">        formatcp!(</span><span style="color:#9acc76;">&quot;{}&quot;</span><span style="color:#abb2bf;">, number)
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">}
+</span></code></pre>
+<p>We need to declare number as a const generic, to indicate it must be known at compile time(the arguments of a <code>const fn</code> don't need to be known at compile time, if they aren't the function will just run normally at runtime, but we can't call <code>formatcp!</code> at runtime). But even with that, <code>formatcp!</code> doesn't work nicely with const generics. I think it should be possible to do it, but I couldn't find a simple way to do it.</p>
+<h2 id="c">C++<a class="zola-anchor" href="#c" aria-label="Anchor link for: c">🔗</a></h2>
+<p>C++'s <code>constexpr</code> is similar to Rust's <code>const</code>, so we can do something like this:</p>
+<pre data-lang="c++" style="background-color:#2b303b;color:#6c7079;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#cd74e8;">constexpr char</span><span style="color:#adb7c9;">* </span><span style="color:#5cb3fa;">get_fizzbuzz</span><span style="color:#abb2bf;">(</span><span style="color:#cd74e8;">int </span><span style="color:#eb6772;">number</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">if </span><span style="color:#abb2bf;">(number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">15 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;FizzBuzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">3 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Fizz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    } </span><span style="color:#cd74e8;">else if </span><span style="color:#abb2bf;">(number </span><span style="color:#adb7c9;">% </span><span style="color:#db9d63;">5 </span><span style="color:#adb7c9;">== </span><span style="color:#db9d63;">0</span><span style="color:#abb2bf;">) {
+</span><span style="color:#abb2bf;">        </span><span style="color:#cd74e8;">return </span><span style="color:#9acc76;">&quot;Buzz&quot;</span><span style="color:#abb2bf;">;
+</span><span style="color:#abb2bf;">    }
+</span><span style="color:#abb2bf;">    </span><span style="color:#cd74e8;">return</span><span style="color:#abb2bf;"> number; </span><span style="font-style:italic;color:#5f697a;">// convert to string
+</span><span style="color:#abb2bf;">}
+</span></code></pre>
+<p>Again, we have the same problem as before. In C++, we can solve it with the <a href="https://en.cppreference.com/w/cpp/utility/to_chars"><code>to_chars</code> function</a> from the standard library. The downside is that to use <code>to_chars</code> we need to first declare an array with a fixed length. This is, of course, a valid solution, but we could be using some unnecessary bytes. In the Zig and Nim solution we don't need to that because the compiler calculated the actual necessary length.</p>
+<h2 id="conclusion">Conclusion<a class="zola-anchor" href="#conclusion" aria-label="Anchor link for: conclusion">🔗</a></h2>
+<p>I wanted to bring attention to the fact that a lot of operations that we think are really simple, like converting a number to string, aren't actually that simple.</p>
+<p>Of course, there is a lot more to talk about this topic, but I think this rather short post can be interesting to some people. I did learn a lot writing and experimenting about the topic. If you reached the end, thank you! I hope you have learned something.</p>
+
+    </article>
+  </section>
+
+  
+
+</div>
+
+
+  <footer>
+    <a href=https:&#x2F;&#x2F;castillodel.github.io>Landing page</a>
+
+    
+    &nbsp;&nbsp;-&nbsp;&nbsp;
+    <a href=&#x2F;about-me>About me</a>
+    
+
+    
+    &nbsp;&nbsp;-&nbsp;&nbsp;
+    <a href=https:&#x2F;&#x2F;paypal.me&#x2F;CastilloDelPayPal>Buy me a drink!</a>
+    
+  </footer>
+
+</body>
+
+</html>
